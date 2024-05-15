@@ -4,11 +4,9 @@ import requests
 from ..config import BEARER_TOKEN, API_ENDPOINT
 from .utils import escape_single_quotes_in_dict
 from ..interfaces.source_interface import SourceInterface
-from ..database.connection import PostgreSQLConnection
 
 class ApiHandler(SourceInterface):
-    def __init__(self, database = PostgreSQLConnection()):
-        database.connect()
+    def __init__(self, database):
         self.db = database 
     
     def get_total_data_count(self, response):
