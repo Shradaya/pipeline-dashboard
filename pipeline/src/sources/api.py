@@ -14,11 +14,14 @@ class ApiHandler(SourceInterface):
 
     def get_data_from_response(self, response):
         return response['data']
+    
+    def create_tables(self, _ = None):
+        return super().create_tables(self.db)
    
     def extract_data(self, *args, fetch_type: str = "all") -> dict:
         file_path = './response.json'
         if os.path.isfile(file_path):
-            with open("./response_.json") as f:
+            with open(file_path) as f:
                 response = json.loads(f.read())
             return response
         params = {
@@ -42,8 +45,9 @@ class ApiHandler(SourceInterface):
             print("Error:", response.status_code)
         
 
-    def insert_into_raw_tables(self, raw_datas, database) -> None:
+    def insert_into_raw_tables(self, **kwargs) -> None:
         tuples_to_insert = []
+        raw_datas = kwargs["raw_data_set"]
         for raw_data in raw_datas:
             allocations = raw_data.get('allocations')
 
@@ -88,4 +92,10 @@ class ApiHandler(SourceInterface):
                     str(raw_data.get('isConverted', '')),
                 )
             )
-        return super().insert_into_raw_tables(tuples_to_insert, database = database)
+        return super().insert_into_raw_tables(database = self.db, data_tuple = tuples_to_insert)
+
+    def insert_into_std_tables(self, _ = None) -> None:
+        return super().insert_into_std_tables(self.db)
+    
+    def insert_into_final_tables(self, _ = None) -> None:
+        return super().insert_into_final_tables(self.db)

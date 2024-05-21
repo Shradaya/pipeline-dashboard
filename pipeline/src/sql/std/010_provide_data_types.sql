@@ -19,7 +19,11 @@ CREATE TABLE IF NOT EXISTS std.std_data AS (
         CASE
             WHEN allocations = 'None' THEN null
             when allocations = '' then null
-            ELSE REPLACE(REPLACE(allocations, '''', '"'), 'None', '"NONE"')::jsonb
+            ELSE REPLACE(
+                REPLACE(allocations, '''', '"'),
+                'None',
+                '"NONE"'
+            ) :: jsonb
         END AS allocations,
         leave_issuer_id,
         current_leave_issuer_id,
@@ -27,8 +31,8 @@ CREATE TABLE IF NOT EXISTS std.std_data AS (
         leave_issuer_last_name,
         current_leave_issuer_email,
         department_description,
-        start_date,
-        end_date,
+        start_date :: date,
+        end_date :: date,
         leave_days :: int,
         reason,
         status,
@@ -39,8 +43,8 @@ CREATE TABLE IF NOT EXISTS std.std_data AS (
         transferable_days,
         is_consecutive,
         fiscal_id,
-        fiscal_start_date,
-        fiscal_end_date,
+        fiscal_start_date::date,
+        fiscal_end_date::date,
         fiscal_is_current :: bool,
         created_at :: date,
         updated_at :: date,
