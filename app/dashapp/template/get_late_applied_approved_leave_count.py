@@ -1,23 +1,23 @@
-LATE_APPLIED_APPROVED_QUERY = """SELECT SUM(leave_days_count) total_count,
-        SUM(
+LATE_APPLIED_APPROVED_QUERY = """SELECT COALESCE(SUM(leave_days_count), 0) total_count,
+        COALESCE(SUM(
             CASE
                 WHEN applied_late is true THEN 1
                 ELSE 0
             END
-        ) as late_applied_leave,
-        SUM(
+        ), 0) as late_applied_leave,
+        COALESCE(SUM(
             CASE
                 WHEN approved_late is true THEN 1
                 ELSE 0
             END
-        ) as late_approved_leave,
-        SUM(
+        ), 0) as late_approved_leave,
+        COALESCE(SUM(
             CASE
                 WHEN applied_late is true
                 and status != 'REJECTED' THEN 1
                 ELSE 0
             END
-        ) late_applied_leave_not_rejected
+        ), 0) late_applied_leave_not_rejected
         from
             final.fact_leaves fl
     JOIN final.dim_date_leaves ddl ON ddl.leave_id = fl.leave_id_sk

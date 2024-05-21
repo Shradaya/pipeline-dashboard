@@ -121,21 +121,29 @@ def get_chart_row():
         dbc.Row([
             dbc.Col(
                 id="leave_count_by_weekday",  
-                children=[]
+                children=[],
+                width = 4,
+                style={'height': '50px'} 
             ),
             dbc.Col(
-                id="second_chart",  
-                children=[]
+                id="leave_applied_approved",  
+                children=[],
+                width = 6,
+                style={'height': '50px'} 
             )
         ]),
         dbc.Row([
             dbc.Col(
                 id="third_chart",  
-                children=[]
+                children=[],
+                width = 4,
+                style={'height': '50px'} 
             ),
             dbc.Col(
                 id="fourth_chart",  
-                children=[]
+                children=[],
+                width = 4,
+                style={'height': '50px'} 
             )
         ])
     ])
@@ -147,5 +155,5 @@ def layout():
         [
             get_body(), 
             get_chart_row(),
-        ], 
+        ]
     )
