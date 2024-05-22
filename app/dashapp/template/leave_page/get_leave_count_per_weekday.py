@@ -1,5 +1,11 @@
 LEAVE_COUNT_PER_WEEKDAY_QUERY = """SELECT
-    dd.day_of_week,
+    CASE 
+        WHEN dd.day_of_week = 2 THEN 'Monday'
+        WHEN dd.day_of_week = 3 THEN 'Tuesday'
+        WHEN dd.day_of_week = 4 THEN 'Wednesday'
+        WHEN dd.day_of_week = 5 THEN 'Thursday'
+        WHEN dd.day_of_week = 6 THEN 'Friday'
+    END day_of_week,
     COUNT(*)
 FROM
     final.fact_leaves fl

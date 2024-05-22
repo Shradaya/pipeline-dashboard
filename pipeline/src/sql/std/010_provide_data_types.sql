@@ -11,9 +11,9 @@ CREATE TABLE IF NOT EXISTS std.std_data AS (
         designation_id,
         designation_name,
         first_name,
-        middle_name,
+        CASE WHEN middle_name = 'None' THEN null ELSE middle_name END as middle_name,
         last_name,
-        email,
+        CASE WHEN email = 'None' THEN null ELSE email END as email,
         is_hr :: bool,
         is_supervisor :: bool,
         CASE

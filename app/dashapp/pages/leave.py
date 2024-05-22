@@ -77,7 +77,7 @@ def get_body():
                     value=None,
                     placeholder="Select a Project ...",
                     id="projects_dropdown",
-                    style={'width': '100%'}  # Set the width to 100%
+                    style={'width': '100%'}
                 )
             ], width=2),
             dbc.Col([
@@ -87,7 +87,7 @@ def get_body():
                     value=None,
                     placeholder="Select a Leave Type ...",
                     id="leave_types_dropdown",
-                    style={'width': '100%'}  # Set the width to 100%
+                    style={'width': '100%'}
                 )
             ], width=2),
             dbc.Col([
@@ -97,7 +97,7 @@ def get_body():
                     value=None,
                     placeholder="Select a Department ...",
                     id="departments_dropdown",
-                    style={'width': '100%'}  # Set the width to 100%
+                    style={'width': '100%'}
                 )
             ], width=2),
             dbc.Col([
@@ -106,10 +106,11 @@ def get_body():
                     min_date_allowed=date_range[0].lower_bound if date_range else None,
                     max_date_allowed=date_range[0].upper_bound if date_range else None,
                     id="date_picker",
-                    style={'width': '100%'}  # Set the width to 100%
+                    style={'width': '100%'}
                 )
             ], width=4)
-        ], align='center')
+        ], align='center'),
+        html.Div(style={'height': '20px'})
     ])
 
 
@@ -120,30 +121,32 @@ def get_chart_row():
     return html.Div([
         dbc.Row([
             dbc.Col(
-                id="leave_count_by_weekday",  
+                id="highest_leave_count",  
                 children=[],
-                width = 4,
-                style={'height': '50px'} 
+                width=6,
+                style={'overflowX': 'auto', 'width': '700px'}
             ),
             dbc.Col(
                 id="leave_applied_approved",  
                 children=[],
-                width = 6,
-                style={'height': '50px'} 
+                width=6
             )
         ]),
         dbc.Row([
             dbc.Col(
-                id="third_chart",  
+                id="leave_count_by_weekday",  
                 children=[],
-                width = 4,
-                style={'height': '50px'} 
+                width=4
             ),
             dbc.Col(
                 id="fourth_chart",  
                 children=[],
-                width = 4,
-                style={'height': '50px'} 
+                width=4
+            ),
+            dbc.Col(
+                id="fifth_chart",  
+                children=[],
+                width=4
             )
         ])
     ])
