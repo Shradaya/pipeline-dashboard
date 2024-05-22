@@ -172,7 +172,7 @@ def register_leave_callbacks(app):
             xaxis=dict(
                 title='Employee', 
                 tickmode='linear',
-                tickangle=0,
+                tickangle=-15,
                 automargin=True
             ),
             yaxis=dict(title='Leave Count'),

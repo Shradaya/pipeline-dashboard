@@ -1,7 +1,7 @@
 HIGHEST_LEAVE_COUNT_QUERY = """
 SELECT
 	TRIM(CONCAT(de.last_name, ', ', de.first_name, ' ', de.middle_name)) full_name,
-	SUM(leave_days_count) leave_count
+	COUNT(*) leave_count
 FROM
 	final.fact_leaves fl
     join final.dim_employees de on
@@ -38,8 +38,7 @@ GROUP BY
 	de.first_name,
 	de.last_name,
 	de.middle_name
-HAVING SUM(leave_days_count) <> 0
+HAVING COUNT(leave_days_count) > 0 and COUNT(leave_days_count) is not null
 ORDER BY
 	leave_count desc
- LIMIT 50
 """
