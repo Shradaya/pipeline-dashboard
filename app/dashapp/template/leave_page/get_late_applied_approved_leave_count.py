@@ -1,4 +1,4 @@
-LATE_APPLIED_APPROVED_QUERY = """SELECT COALESCE(SUM(leave_days_count), 0) total_count,
+LATE_APPLIED_APPROVED_QUERY = """SELECT COALESCE(COUNT(leave_days_count), 0) total_count,
         COALESCE(SUM(
             CASE
                 WHEN applied_late is true THEN 1
