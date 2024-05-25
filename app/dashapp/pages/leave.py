@@ -59,6 +59,19 @@ def get_date_range():
         date_range = cursor.fetchall()
     return date_range
 
+def get_fiscal_years():
+    sql = """
+        SELECT 
+            id value,
+            CONCAT('FY', ' (', fiscal_start_date, ') - (', fiscal_end_date, ')') label
+        FROM final.dim_fiscal;
+    """
+    with get_conn() as conn:
+        cursor = conn.cursor(cursor_factory = NamedTupleCursor)
+        cursor.execute(sql)
+        date_range = cursor.fetchall()
+    return date_range
+
 
 def get_body():
     """Get the body of the layout for our Dash SPA"""
@@ -118,6 +131,9 @@ def get_body():
 
 def get_chart_row():
     """Create a row and column for our Plotly/Dash time series chart"""
+    fiscal_years = get_fiscal_years()
+    fiscal_year_options = [{'label': fy.label, 'value': fy.value} for fy in fiscal_years]
+
     return html.Div([
         dbc.Row([
             dbc.Col(
@@ -136,21 +152,24 @@ def get_chart_row():
             dbc.Col(
                 id="leave_count_by_weekday",  
                 children=[],
-                width=4
+                width=6
             ),
             dbc.Col(
-                id="fourth_chart",  
-                children=[],
-                width=4
-            ),
-            dbc.Col(
-                id="fifth_chart",  
-                children=[],
-                width=4
-            )
+               children=[
+                   dcc.Dropdown(
+                       id='fiscal_year_dropdown',
+                       options=fiscal_year_options,
+                       placeholder="Choose Fiscal Year",
+                       value=fiscal_year_options[0]['value'],
+                       style={'width': '100%', 'marginBottom': '10px'}
+                   ),
+                   html.Div(id="leave_balance_table")  # Dedicated Div for the table
+               ],
+               width=6,
+               style={'marginTop': '-150px', 'height': '700px'}  # Adjusted style
+           )
         ])
     ])
-
 
 def layout():
     """Function to get Dash's "HTML" layout"""

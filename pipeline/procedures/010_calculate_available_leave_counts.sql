@@ -6,7 +6,6 @@ DECLARE
     prev_available_leave_count INT;
 	prev_remaining_leave_count INT;
 BEGIN
-    -- Create a new table to store the results
     CREATE TABLE IF NOT EXISTS final.calculated_leave_counts (
         employee_id INT,
         fiscal_id INT,
@@ -16,7 +15,6 @@ BEGIN
     );
    TRUNCATE final.calculated_leave_counts;
 
-    -- Loop through each record in the CTE
     FOR rec IN 
         SELECT
 			fl.employee_id,
@@ -41,25 +39,55 @@ BEGIN
 			dd.fiscal_id,
 			dlt.leave_type_name order by  employee_id, leave_type_name, fiscal_id
     LOOP
-        -- Calculate available leave count based on fiscal year
         IF rec.fiscal_id = 1 THEN
             prev_available_leave_count := rec.default_leave_count_for_fiscal;
            	prev_remaining_leave_count := rec.default_leave_count_for_fiscal - rec.leaves_taken;
         ELSE
-            SELECT available_leave_count, remaining_leave_count
-            INTO prev_available_leave_count, prev_remaining_leave_count
-            FROM final.calculated_leave_counts
-            WHERE employee_id = rec.employee_id
-                AND leave_type_name = rec.leave_type_name
-                AND fiscal_id = rec.fiscal_id - 1;
-            
-            prev_available_leave_count := prev_available_leave_count + LEAST(prev_remaining_leave_count, rec.transferable_leave_count);
-           	prev_remaining_leave_count := prev_available_leave_count - rec.leaves_taken;
+            IF rec.leave_type_name = 'Sick' THEN
+                IF EXISTS (
+                    SELECT 1 
+                    FROM final.calculated_leave_counts 
+                    WHERE employee_id = rec.employee_id 
+                        AND fiscal_id = rec.fiscal_id - 1 
+                        AND leave_type_name = 'Annual'
+                ) THEN
+                    SELECT available_leave_count, remaining_leave_count
+                    INTO prev_available_leave_count, prev_remaining_leave_count
+                    FROM final.calculated_leave_counts
+                    WHERE employee_id = rec.employee_id
+                        AND leave_type_name = 'Annual'
+                        AND fiscal_id = rec.fiscal_id - 1;
+                    
+                    prev_available_leave_count := prev_available_leave_count + LEAST(prev_remaining_leave_count, rec.transferable_leave_count);
+                    prev_remaining_leave_count := prev_available_leave_count - rec.leaves_taken;
+                ELSE
+                    SELECT available_leave_count, remaining_leave_count
+                    INTO prev_available_leave_count, prev_remaining_leave_count
+                    FROM final.calculated_leave_counts
+                    WHERE employee_id = rec.employee_id
+                        AND leave_type_name = rec.leave_type_name
+                        AND fiscal_id = rec.fiscal_id - 1;
+                    
+                    prev_available_leave_count := prev_available_leave_count + LEAST(prev_remaining_leave_count, rec.transferable_leave_count);
+                    prev_remaining_leave_count := prev_available_leave_count - rec.leaves_taken;
+                END IF;
+            ELSE
+                SELECT available_leave_count, remaining_leave_count
+                INTO prev_available_leave_count, prev_remaining_leave_count
+                FROM final.calculated_leave_counts
+                WHERE employee_id = rec.employee_id
+                    AND leave_type_name = rec.leave_type_name
+                    AND fiscal_id = rec.fiscal_id - 1;
+                
+                prev_available_leave_count := prev_available_leave_count + LEAST(prev_remaining_leave_count, rec.transferable_leave_count);
+                prev_remaining_leave_count := prev_available_leave_count - rec.leaves_taken;
+            END IF;
         END IF;
 
-        -- Insert the calculated available leave count into the new table
-        INSERT INTO final.calculated_leave_counts (employee_id, fiscal_id, leave_type_name, available_leave_count, remaining_leave_count)
-        VALUES (rec.employee_id, rec.fiscal_id, rec.leave_type_name, prev_available_leave_count, prev_remaining_leave_count);
+        IF prev_available_leave_count IS NOT NULL OR prev_remaining_leave_count IS NOT NULL THEN
+            INSERT INTO final.calculated_leave_counts (employee_id, fiscal_id, leave_type_name, available_leave_count, remaining_leave_count)
+            VALUES (rec.employee_id, rec.fiscal_id, rec.leave_type_name, prev_available_leave_count, prev_remaining_leave_count);
+        END IF;
     END LOOP;
 END;
 $$;

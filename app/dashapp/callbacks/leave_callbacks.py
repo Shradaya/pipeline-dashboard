@@ -5,18 +5,26 @@ from dash import dcc, html, Input, Output
 from psycopg2.extras import RealDictCursor
 
 from ..utils.sql_query import read_sql_query
+from ..template.leave_page.get_leave_balance import LEAVE_BALANCE_QUERY
 from ..template.leave_page.get_highest_leave_count import HIGHEST_LEAVE_COUNT_QUERY
 from ..template.leave_page.get_leave_count_per_weekday import LEAVE_COUNT_PER_WEEKDAY_QUERY
 from ..template.leave_page.get_late_applied_approved_leave_count import LATE_APPLIED_APPROVED_QUERY
 
 
-def execute_sql_query(query, selected_project, leave_type, department, start_date, end_date):
+def execute_sql_query(query, **kwargs):
+    selected_project = kwargs.get('selected_project')
+    leave_type = kwargs.get('leave_type')
+    department = kwargs.get('department')
+    start_date = kwargs.get('start_date')
+    end_date = kwargs.get('end_date')
+    fiscal_year = kwargs.get('fiscal_year')
     query, bind_params = read_sql_query(query,
-                                        selected_project=selected_project,
-                                        leave_type=leave_type,
-                                        department=department,
-                                        start_date=start_date,
-                                        end_date=end_date)
+                                        selected_project = selected_project,
+                                        leave_type = leave_type,
+                                        department = department,
+                                        start_date = start_date,
+                                        end_date = end_date,
+                                        fiscal_year = fiscal_year)
     with get_conn() as conn:
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         cursor.execute(query, bind_params)
@@ -39,11 +47,11 @@ def register_leave_callbacks(app):
         day_counts = {'Monday': 0, 'Tuesday': 0, 'Wednesday': 0, 'Thursday': 0, 'Friday': 0}
 
         leaves_per_week_day = execute_sql_query(LEAVE_COUNT_PER_WEEKDAY_QUERY,
-                                                selected_project,
-                                                leave_type,
-                                                department,
-                                                start_date,
-                                                end_date)
+                                                selected_project = selected_project,
+                                                leave_type = leave_type,
+                                                department = department,
+                                                start_date = start_date,
+                                                end_date = end_date)
 
         # Update the counts based on the retrieved data
         for row in leaves_per_week_day:
@@ -95,11 +103,11 @@ def register_leave_callbacks(app):
     )
     def leaves_per_weekday_chart(selected_project, leave_type, department, start_date, end_date):
         leave_applied_approved = execute_sql_query(LATE_APPLIED_APPROVED_QUERY,
-                                                   selected_project,
-                                                   leave_type,
-                                                   department,
-                                                   start_date,
-                                                   end_date)
+                                                   selected_project = selected_project,
+                                                   leave_type = leave_type,
+                                                   department = department,
+                                                   start_date = start_date,
+                                                   end_date = end_date)
 
         if leave_applied_approved:
             data = leave_applied_approved[0]
@@ -144,11 +152,11 @@ def register_leave_callbacks(app):
     )
     def highest_leave_count_chart(selected_project, leave_type, department, start_date, end_date):
         leave_applied_approved = execute_sql_query(HIGHEST_LEAVE_COUNT_QUERY,
-                                                selected_project,
-                                                leave_type,
-                                                department,
-                                                start_date,
-                                                end_date)
+                                                selected_project = selected_project,
+                                                leave_type = leave_type,
+                                                department = department,
+                                                start_date = start_date,
+                                                end_date = end_date)
 
         # Extract names and leave counts
         names = [entry['full_name'] for entry in leave_applied_approved]
@@ -183,3 +191,36 @@ def register_leave_callbacks(app):
 
         fig = {'data': data, 'layout': layout}
         return dcc.Graph(figure=fig, config={'staticPlot': False})
+    
+    @app.callback(
+        Output("leave_balance_table", "children"),
+        [
+            Input("projects_dropdown", "value"),
+            Input("leave_types_dropdown", "value"),
+            Input("departments_dropdown", "value"),
+            Input("fiscal_year_dropdown", "value")
+        ]
+    )
+    def leave_balance_table(selected_project, leave_type, department, fiscal_year):
+        leave_balance = execute_sql_query(LEAVE_BALANCE_QUERY,
+                                                selected_project = selected_project,
+                                                leave_type = leave_type,
+                                                department = department,
+                                                fiscal_year = fiscal_year)
+
+        table_header = [
+            html.Thead(html.Tr([html.Th("Full Name"), html.Th("Leave Type"), html.Th("Credits"), html.Th("Taken"), html.Th("Available")]), 
+                       style={'position': 'sticky', 'top': 0, 'background': 'white', 'zIndex': 1})
+        ]
+        table_body = [html.Tr([
+            html.Td(entry['full_name']),
+            html.Td(entry['leave_type_name']),
+            html.Td(entry['available_leave_count']),
+            html.Td(entry['leaves_taken']),
+            html.Td(entry['remaining_leave_count'])
+        ]) for entry in leave_balance]
+
+        table = dbc.Table(table_header + [html.Tbody(table_body)], bordered=True, hover=True, responsive=True, striped=True)
+        scrollable_table = html.Div(table, style={'overflowY': 'auto', 'height': '500px'})
+
+        return scrollable_table
