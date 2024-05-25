@@ -99,3 +99,6 @@ class ApiHandler(SourceInterface):
     
     def insert_into_final_tables(self, _ = None) -> None:
         return super().insert_into_final_tables(self.db)
+    
+    def create_procedures(self, _ = None) -> None:
+        return super().create_procedures(self.db)

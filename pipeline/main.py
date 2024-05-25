@@ -35,6 +35,8 @@ if __name__ == "__main__":
     handler.insert_into_std_tables()
     print("Processing Data for final tables")
     handler.insert_into_final_tables()
+    print("Creating  Data for final tables")
+    handler.create_procedures()
         
 
 

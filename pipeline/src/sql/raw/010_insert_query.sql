@@ -79,3 +79,5 @@ VALUES (
 ON CONFLICT ON CONSTRAINT raw_api_data_pk 
 DO UPDATE 
 SET status = EXCLUDED.status;
+
+UPDATE raw.raw_data SET leave_days = '8' WHERE leave_type_name = 'Sick' AND fiscal_id::INT >= 102;

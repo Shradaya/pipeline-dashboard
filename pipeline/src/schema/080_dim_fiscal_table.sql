@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS final.dim_fiscal (
     id SERIAL,
+    fiscal_id VARCHAR(10),
     fiscal_start_date date,
     fiscal_end_date date,
     CONSTRAINT dim_fiscal_pk PRIMARY KEY (id),

@@ -67,7 +67,8 @@ from
     left join final.dim_employees declid on sd.current_leave_issuer_id = de.employee_id
     join final.dim_designations dd on sd.designation_id = dd.designation_id
     join final.dim_departments dd2 on sd.department_description = dd2.department_name
-    join final.dim_leave_types dlt on sd.leave_type_id = dlt.leave_type_id
+    join final.dim_fiscal df on df.fiscal_id = sd.fiscal_id 
+    join final.dim_leave_types dlt on sd.leave_type_id = dlt.leave_type_id and df.id  = dlt.fiscal_id 
 ON CONFLICT ON CONSTRAINT fact_leave_id_unique 
 DO UPDATE 
 SET status = EXCLUDED.status;

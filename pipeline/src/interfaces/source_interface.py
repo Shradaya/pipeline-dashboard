@@ -1,6 +1,6 @@
 import os
 from ..utils import query_reader
-from ..constants import SCHEMA_FILE_PATH, RAW_FILE_PATH, STD_FILE_PATH, FINAL_FILE_PATH
+from ..constants import SCHEMA_FILE_PATH, RAW_FILE_PATH, STD_FILE_PATH, FINAL_FILE_PATH, PROCEDURE_FILE_PATH
 
 
 class SourceInterface:
@@ -55,3 +55,14 @@ class SourceInterface:
     def extract_data(self, database, *args, **kwargs) -> None:
         """Extract data from the source"""
         pass
+    
+    def create_procedures(self, database, *args, **kwargs) -> None:
+        try:
+            print("Creating / Executing Procedures")
+            for file in os.listdir(PROCEDURE_FILE_PATH):
+                if file.endswith('.sql'):
+                    query = query_reader(os.path.join(PROCEDURE_FILE_PATH, file))
+                    database.execute_query(query)
+        except Exception as error:
+            print(f"Error while inserting into std tables: {error}")
+
