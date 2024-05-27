@@ -1,11 +1,9 @@
-import os
 import json
-import requests
-from ..config import BEARER_TOKEN, API_ENDPOINT
+from ..aws import get_file_content
 from .utils import escape_single_quotes_in_dict
 from ..interfaces.source_interface import SourceInterface
 
-class ApiHandler(SourceInterface):
+class JSONHandler(SourceInterface):
     def __init__(self, database):
         self.db = database 
     
@@ -19,26 +17,9 @@ class ApiHandler(SourceInterface):
         return super().create_tables(self.db)
    
     def extract_data(self, **kwargs) -> dict:
-        params = {
-            "startDate": kwargs.get("startDate"),
-            "endDate": kwargs.get("endDate"),
-            "size": kwargs.get("size"),
-            "page": kwargs.get("page"),
-            "fetchType": "all",
-            "roleType": "issuer"
-        }
-
-        headers = {
-            "Authorization": f"Bearer {BEARER_TOKEN}"
-        }
-
-        response = requests.get(API_ENDPOINT, params = params, headers = headers)
-        if response.status_code == 200:
-            print("Request was successful!")
-            return response.json()
-        else:
-            print("Error:", response.status_code)
-        
+        bucket = kwargs.get('bucket')
+        key = kwargs.get('key')
+        return json.loads(get_file_content(bucket, key))
 
     def insert_into_raw_tables(self, **kwargs) -> None:
         tuples_to_insert = []

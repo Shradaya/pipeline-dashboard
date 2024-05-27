@@ -6,3 +6,5 @@ PROCEDURE_FILE_PATH = "./procedures/"
 RAW_FILE_PATH = "./src/sql/raw/"
 STD_FILE_PATH = "./src/sql/std/"
 FINAL_FILE_PATH = "./src/sql/final/"
+
+HANDLERS_AVAILABLE = ["api", "json"]

@@ -1,5 +1,5 @@
 from ..sources.api import ApiHandler
-from ..sources.csv import CsvHandler
+from ..sources.json_src import JSONHandler
 from ..database.connection import PostgreSQLConnection
 
 class SourceFactory:
@@ -7,7 +7,7 @@ class SourceFactory:
         db = PostgreSQLConnection()
         if source_type == "api":
             return ApiHandler(db.connect())
-        elif source_type == "csv":
-            return CsvHandler(db.connect())
+        elif source_type == "json":
+            return JSONHandler(db.connect())
         else:
             raise ValueError("Invalid Source")
