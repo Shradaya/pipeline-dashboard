@@ -7,6 +7,15 @@ from ...constants import (LEAVE_COUNT_PER_WEEKDAY_ENDPOINT,
                             HIGHEST_LEAVE_COUNT_ENDPOINT,
                             LEAVE_BALANCE_ENDPOINT)
 
+def fetch_data(endpoint, params):
+    try:
+        response = requests.get(endpoint, params=params)
+        response.raise_for_status()
+        return response.json()
+    except (requests.RequestException, ValueError) as e:
+        print(f"Request Failed: {e}")
+        return None
+
 def register_leave_callbacks(app):
     @app.callback(
         Output("leave_count_by_weekday", "children"),
@@ -26,16 +35,7 @@ def register_leave_callbacks(app):
             'start_date': start_date,
             'end_date': end_date
         }
-        try:
-            response = requests.get(LEAVE_COUNT_PER_WEEKDAY_ENDPOINT, params=params)
-            response.raise_for_status()  # Ensure we raise an exception for bad responses
-            leaves_per_week_day = response.json()
-        except requests.RequestException as e:
-            print(f"Request Failed: {e}")
-            return html.Div("Error fetching data.", style={'display': 'block'})
-        except ValueError as e:
-            print(f"Invalid JSON response: {e}")
-            return html.Div("Error fetching data.", style={'display': 'block'})
+        leaves_per_week_day = fetch_data(LEAVE_COUNT_PER_WEEKDAY_ENDPOINT, params)
 
         day_of_week = leaves_per_week_day.get('day_of_week')
         count = leaves_per_week_day.get('count')
@@ -86,13 +86,7 @@ def register_leave_callbacks(app):
             'start_date': start_date,
             'end_date': end_date
         }
-        try:
-            response = requests.get(LATE_APPLIED_APPROVED_ENDPOINT, params=params)
-            response.raise_for_status()
-            leave_applied_approved = response.json()
-        except requests.RequestException as e:
-            print(f"Request Failed: {e}")
-            return html.Div("Error fetching data.")
+        leave_applied_approved = fetch_data(LATE_APPLIED_APPROVED_ENDPOINT, params)
 
         if leave_applied_approved:
             data = leave_applied_approved[0]
@@ -143,17 +137,11 @@ def register_leave_callbacks(app):
             'start_date': start_date,
             'end_date': end_date
         }
-        try:
-            response = requests.get(HIGHEST_LEAVE_COUNT_ENDPOINT, params=params)
-            response.raise_for_status()
-            leave_applied_approved = response.json()
-        except requests.RequestException as e:
-            print(f"Request Failed: {e}")
-            return html.Div("Error fetching data.")
+        leave_count = fetch_data(HIGHEST_LEAVE_COUNT_ENDPOINT, params)
 
         # Extract names and leave counts
-        names = leave_applied_approved.get("names")
-        leave_counts = leave_applied_approved.get("leave_counts")
+        names = leave_count.get("names")
+        leave_counts = leave_count.get("leave_counts")
 
         # Create the bar graph
         data = [
@@ -201,14 +189,7 @@ def register_leave_callbacks(app):
             'department': department,
             'fiscal_year': fiscal_year
         }
-        try:
-            response = requests.get(LEAVE_BALANCE_ENDPOINT, params=params, timeout = 30)
-            response.raise_for_status()
-            leave_balance = response.json()
-        except requests.RequestException as e:
-            print(f"Request Failed: {e}")
-            return html.Div("Error fetching data")
-        
+        leave_balance = fetch_data(LEAVE_BALANCE_ENDPOINT, params)
 
         table_header = [
             html.Thead(html.Tr([html.Th("Full Name"), html.Th("Leave Type"), html.Th("Credits"), html.Th("Taken"), html.Th("Available")]), 
