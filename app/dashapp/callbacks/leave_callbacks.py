@@ -28,11 +28,14 @@ def register_leave_callbacks(app):
         }
         try:
             response = requests.get(LEAVE_COUNT_PER_WEEKDAY_ENDPOINT, params=params)
+            response.raise_for_status()  # Ensure we raise an exception for bad responses
+            leaves_per_week_day = response.json()
         except requests.RequestException as e:
             print(f"Request Failed: {e}")
+            return html.Div("Error fetching data.", style={'display': 'block'})
         except ValueError as e:
             print(f"Invalid JSON response: {e}")
-        leaves_per_week_day = response.json()
+            return html.Div("Error fetching data.", style={'display': 'block'})
 
         day_of_week = leaves_per_week_day.get('day_of_week')
         count = leaves_per_week_day.get('count')
