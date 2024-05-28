@@ -1,8 +1,8 @@
-from dash import dcc
-from dash import html
 from app.database import get_conn
 import dash_bootstrap_components as dbc
+from dash_extensions.enrich import dcc, html
 from psycopg2.extras import RealDictCursor, NamedTupleCursor
+
 
 def get_projects():
     sql = """
@@ -73,7 +73,7 @@ def get_fiscal_years():
     return date_range
 
 
-def get_body():
+async def get_body():
     """Get the body of the layout for our Dash SPA"""
 
     projects = get_projects()
@@ -129,7 +129,7 @@ def get_body():
 
 
 
-def get_chart_row():
+async def get_chart_row():
     """Create a row and column for our Plotly/Dash time series chart"""
     fiscal_years = get_fiscal_years()
     fiscal_year_options = [{'label': fy.label, 'value': fy.value} for fy in fiscal_years]

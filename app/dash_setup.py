@@ -3,6 +3,7 @@ from flask.helpers import get_root_path
 from app.dashapp.index import get_layout
 from app.dashapp.index import get_application_page 
 from .dashapp.callbacks import register_callbacks
+from dash_extensions.enrich import DashProxy
     
     
 def register_dashapps(app):
@@ -25,7 +26,7 @@ def register_dashapps(app):
         "content": "width=device-width, initial-scale=1, shrink-to-fit=no"
     }]
 
-    dashapp = dash.Dash(
+    dashapp = DashProxy(
         __name__,
         server = app,
         url_base_pathname = '/dash/',

@@ -1,3 +1,4 @@
+from functools import lru_cache
 from ..template.leave_page.get_leave_balance import LEAVE_BALANCE_QUERY
 from ..template.leave_page.get_highest_leave_count import HIGHEST_LEAVE_COUNT_QUERY
 from ..template.leave_page.get_leave_count_per_weekday import LEAVE_COUNT_PER_WEEKDAY_QUERY
@@ -5,6 +6,8 @@ from ..template.leave_page.get_late_applied_approved_leave_count import LATE_APP
 
 from .services import execute_sql_query
 
+
+@lru_cache(maxsize=100)
 def leaves_per_weekday(selected_project, leave_type, department, start_date, end_date):
     day_counts = {'Monday': 0, 'Tuesday': 0, 'Wednesday': 0, 'Thursday': 0, 'Friday': 0}
 
@@ -30,6 +33,7 @@ def leaves_per_weekday(selected_project, leave_type, department, start_date, end
     }
     
 
+@lru_cache(maxsize=100)
 def leave_metrics(selected_project, leave_type, department, start_date, end_date):
     leave_metrics = execute_sql_query(LATE_APPLIED_APPROVED_QUERY,
                                                 selected_project = selected_project,
@@ -39,6 +43,7 @@ def leave_metrics(selected_project, leave_type, department, start_date, end_date
                                                 end_date = end_date)
     return leave_metrics
 
+@lru_cache(maxsize=100)
 def highest_leave_count(selected_project, leave_type, department, start_date, end_date):
     leave_applied_approved = execute_sql_query(HIGHEST_LEAVE_COUNT_QUERY,
                                             selected_project = selected_project,
@@ -56,6 +61,7 @@ def highest_leave_count(selected_project, leave_type, department, start_date, en
         "leave_counts": leave_counts
     }
     
+@lru_cache(maxsize=100)
 def leave_balance_controller(selected_project, leave_type, department, fiscal_year):
     leave_balance = execute_sql_query(LEAVE_BALANCE_QUERY,
                                     selected_project = selected_project,

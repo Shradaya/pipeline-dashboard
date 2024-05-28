@@ -1,8 +1,10 @@
-from dash import dcc
-from dash import html
+# from dash import dcc
+# from dash import html
 from app.database import get_conn
 import dash_bootstrap_components as dbc
+from dash_extensions.enrich import dcc, html
 from psycopg2.extras import RealDictCursor, NamedTupleCursor
+
 
 
 def get_navbar():
