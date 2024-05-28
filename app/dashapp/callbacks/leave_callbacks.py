@@ -1,36 +1,11 @@
+import requests
 import plotly.graph_objs as go
-from app.database import get_conn
 import dash_bootstrap_components as dbc
 from dash import dcc, html, Input, Output
-from psycopg2.extras import RealDictCursor
-
-from ..utils.sql_query import read_sql_query
-from ..template.leave_page.get_leave_balance import LEAVE_BALANCE_QUERY
-from ..template.leave_page.get_highest_leave_count import HIGHEST_LEAVE_COUNT_QUERY
-from ..template.leave_page.get_leave_count_per_weekday import LEAVE_COUNT_PER_WEEKDAY_QUERY
-from ..template.leave_page.get_late_applied_approved_leave_count import LATE_APPLIED_APPROVED_QUERY
-
-
-def execute_sql_query(query, **kwargs):
-    selected_project = kwargs.get('selected_project')
-    leave_type = kwargs.get('leave_type')
-    department = kwargs.get('department')
-    start_date = kwargs.get('start_date')
-    end_date = kwargs.get('end_date')
-    fiscal_year = kwargs.get('fiscal_year')
-    query, bind_params = read_sql_query(query,
-                                        selected_project = selected_project,
-                                        leave_type = leave_type,
-                                        department = department,
-                                        start_date = start_date,
-                                        end_date = end_date,
-                                        fiscal_year = fiscal_year)
-    with get_conn() as conn:
-        cursor = conn.cursor(cursor_factory=RealDictCursor)
-        cursor.execute(query, bind_params)
-        leaves_per_week_day = cursor.fetchall()
-    return leaves_per_week_day
-
+from ...constants import (LEAVE_COUNT_PER_WEEKDAY_ENDPOINT,
+                            LATE_APPLIED_APPROVED_ENDPOINT,
+                            HIGHEST_LEAVE_COUNT_ENDPOINT,
+                            LEAVE_BALANCE_ENDPOINT)
 
 def register_leave_callbacks(app):
     @app.callback(
@@ -44,31 +19,30 @@ def register_leave_callbacks(app):
         ]
     )
     def leaves_per_weekday_chart(selected_project, leave_type, department, start_date, end_date):
-        day_counts = {'Monday': 0, 'Tuesday': 0, 'Wednesday': 0, 'Thursday': 0, 'Friday': 0}
+        params = {
+            'selected_project': selected_project,
+            'leave_type': leave_type,
+            'department': department,
+            'start_date': start_date,
+            'end_date': end_date
+        }
+        try:
+            response = requests.get(LEAVE_COUNT_PER_WEEKDAY_ENDPOINT, params=params)
+        except requests.RequestException as e:
+            print(f"Request Failed: {e}")
+        except ValueError as e:
+            print(f"Invalid JSON response: {e}")
+        leaves_per_week_day = response.json()
 
-        leaves_per_week_day = execute_sql_query(LEAVE_COUNT_PER_WEEKDAY_QUERY,
-                                                selected_project = selected_project,
-                                                leave_type = leave_type,
-                                                department = department,
-                                                start_date = start_date,
-                                                end_date = end_date)
-
-        # Update the counts based on the retrieved data
-        for row in leaves_per_week_day:
-            day_of_week = row['day_of_week']
-            count = row['count']
-            day_counts[day_of_week] = count
-
-        # Convert the dictionary to lists for day_of_week and count
-        day_of_week = list(day_counts.keys())
-        count = list(day_counts.values())
+        day_of_week = leaves_per_week_day.get('day_of_week')
+        count = leaves_per_week_day.get('count')
 
         data = [
             go.Bar(
                 x=day_of_week,
                 y=count,
                 marker=dict(color='blue'),
-                name='Leave Count',
+                name='Leave Count'
             )
         ]
 
@@ -101,13 +75,21 @@ def register_leave_callbacks(app):
             Input("date_picker", "end_date")
         ]
     )
-    def leaves_per_weekday_chart(selected_project, leave_type, department, start_date, end_date):
-        leave_applied_approved = execute_sql_query(LATE_APPLIED_APPROVED_QUERY,
-                                                   selected_project = selected_project,
-                                                   leave_type = leave_type,
-                                                   department = department,
-                                                   start_date = start_date,
-                                                   end_date = end_date)
+    def leave_metrics_chart(selected_project, leave_type, department, start_date, end_date):
+        params = {
+            'selected_project': selected_project,
+            'leave_type': leave_type,
+            'department': department,
+            'start_date': start_date,
+            'end_date': end_date
+        }
+        try:
+            response = requests.get(LATE_APPLIED_APPROVED_ENDPOINT, params=params)
+            response.raise_for_status()
+            leave_applied_approved = response.json()
+        except requests.RequestException as e:
+            print(f"Request Failed: {e}")
+            return html.Div("Error fetching data.")
 
         if leave_applied_approved:
             data = leave_applied_approved[0]
@@ -151,16 +133,24 @@ def register_leave_callbacks(app):
         ]
     )
     def highest_leave_count_chart(selected_project, leave_type, department, start_date, end_date):
-        leave_applied_approved = execute_sql_query(HIGHEST_LEAVE_COUNT_QUERY,
-                                                selected_project = selected_project,
-                                                leave_type = leave_type,
-                                                department = department,
-                                                start_date = start_date,
-                                                end_date = end_date)
+        params = {
+            'selected_project': selected_project,
+            'leave_type': leave_type,
+            'department': department,
+            'start_date': start_date,
+            'end_date': end_date
+        }
+        try:
+            response = requests.get(HIGHEST_LEAVE_COUNT_ENDPOINT, params=params)
+            response.raise_for_status()
+            leave_applied_approved = response.json()
+        except requests.RequestException as e:
+            print(f"Request Failed: {e}")
+            return html.Div("Error fetching data.")
 
         # Extract names and leave counts
-        names = [entry['full_name'] for entry in leave_applied_approved]
-        leave_counts = [entry['leave_count'] for entry in leave_applied_approved]
+        names = leave_applied_approved.get("names")
+        leave_counts = leave_applied_approved.get("leave_counts")
 
         # Create the bar graph
         data = [
@@ -202,11 +192,20 @@ def register_leave_callbacks(app):
         ]
     )
     def leave_balance_table(selected_project, leave_type, department, fiscal_year):
-        leave_balance = execute_sql_query(LEAVE_BALANCE_QUERY,
-                                                selected_project = selected_project,
-                                                leave_type = leave_type,
-                                                department = department,
-                                                fiscal_year = fiscal_year)
+        params = {
+            'selected_project': selected_project,
+            'leave_type': leave_type,
+            'department': department,
+            'fiscal_year': fiscal_year
+        }
+        try:
+            response = requests.get(LEAVE_BALANCE_ENDPOINT, params=params, timeout = 30)
+            response.raise_for_status()
+            leave_balance = response.json()
+        except requests.RequestException as e:
+            print(f"Request Failed: {e}")
+            return html.Div("Error fetching data")
+        
 
         table_header = [
             html.Thead(html.Tr([html.Th("Full Name"), html.Th("Leave Type"), html.Th("Credits"), html.Th("Taken"), html.Th("Available")]), 

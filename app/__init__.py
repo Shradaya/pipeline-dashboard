@@ -6,6 +6,7 @@ from flask import Flask
 
 # Local imports
 from app import database
+from .api.base import api_router_v1
 from app.dash_setup import register_dashapps
 
 
@@ -16,14 +17,9 @@ def create_app():
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
     logging.basicConfig(level=logging.DEBUG)
 
-    # @app.route('/')
-    # def home():
-    #     pass
-
     # Initialize extensions
     database.init_app(app) # PostgreSQL db with psycopg2
-
-    # For the Dash app
+    app.register_blueprint(api_router_v1)
     register_dashapps(app)
 
     return app

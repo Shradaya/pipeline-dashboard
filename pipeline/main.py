@@ -4,7 +4,7 @@ from src.factory.source_factory import SourceFactory
 
 def lambda_handler(event, context):
     source = "api"
-    bucket, key = (None, None)
+    bucket, key, start_date, end_date, page, page_size = (None, None, None, None, None, None)
     if event.get('Records'):
         bucket = event['Records'][0]['s3']['bucket']['name']
         key = event['Records'][0]['s3']['object']['key']
@@ -14,16 +14,19 @@ def lambda_handler(event, context):
         file_extension = key.split(".")[-1]
         if file_extension in HANDLERS_AVAILABLE:
             source = file_extension
+    else:
+        page = 1
+        page_size = 1000
+        start_date = "2021-07-17"
+        end_date = "2024-04-23"
 
     source_factory = SourceFactory()
     handler = source_factory.select_handler(source)
-    page = 1
-    page_size = 1000
     handler.create_tables()
     while True:
         response = handler.extract_data(
-            startDate = "2021-07-17",
-            endDate = "2024-04-23",
+            startDate = start_date,
+            endDate = end_date,
             size = str(page_size),
             page = str(page),
             bucket = bucket,
