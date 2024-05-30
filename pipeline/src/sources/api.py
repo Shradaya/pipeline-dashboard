@@ -4,11 +4,9 @@ import requests
 from ..config import BEARER_TOKEN, API_ENDPOINT
 from .utils import escape_single_quotes_in_dict
 from ..interfaces.source_interface import SourceInterface
-from ..database.connection import PostgreSQLConnection
 
 class ApiHandler(SourceInterface):
-    def __init__(self, database = PostgreSQLConnection()):
-        database.connect()
+    def __init__(self, database):
         self.db = database 
     
     def get_total_data_count(self, response):
@@ -16,19 +14,17 @@ class ApiHandler(SourceInterface):
 
     def get_data_from_response(self, response):
         return response['data']
+    
+    def create_tables(self, _ = None):
+        return super().create_tables(self.db)
    
-    def extract_data(self, *args, fetch_type: str = "all") -> dict:
-        file_path = './response.json'
-        if os.path.isfile(file_path):
-            with open("./response_.json") as f:
-                response = json.loads(f.read())
-            return response
+    def extract_data(self, **kwargs) -> dict:
         params = {
-            "startDate": args[0],
-            "endDate": args[1],
-            "size": args[2],
-            "page": args[3],
-            "fetchType": fetch_type,
+            "startDate": kwargs.get("startDate"),
+            "endDate": kwargs.get("endDate"),
+            "size": kwargs.get("size"),
+            "page": kwargs.get("page"),
+            "fetchType": "all",
             "roleType": "issuer"
         }
 
@@ -44,8 +40,9 @@ class ApiHandler(SourceInterface):
             print("Error:", response.status_code)
         
 
-    def insert_into_raw_tables(self, raw_datas, database) -> None:
+    def insert_into_raw_tables(self, **kwargs) -> None:
         tuples_to_insert = []
+        raw_datas = kwargs["raw_data_set"]
         for raw_data in raw_datas:
             allocations = raw_data.get('allocations')
 
@@ -90,4 +87,13 @@ class ApiHandler(SourceInterface):
                     str(raw_data.get('isConverted', '')),
                 )
             )
-        return super().insert_into_raw_tables(tuples_to_insert, database = database)
+        return super().insert_into_raw_tables(database = self.db, data_tuple = tuples_to_insert)
+
+    def insert_into_std_tables(self, _ = None) -> None:
+        return super().insert_into_std_tables(self.db)
+    
+    def insert_into_final_tables(self, _ = None) -> None:
+        return super().insert_into_final_tables(self.db)
+    
+    def create_procedures(self, _ = None) -> None:
+        return super().create_procedures(self.db)

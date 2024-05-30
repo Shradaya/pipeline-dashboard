@@ -32,6 +32,7 @@ class PostgreSQLConnection:
                 password=self.password
             )
             print("Connected to PostgreSQL successfully!")
+            return self
         except psycopg2.Error as e:
             print(f"Error connecting to PostgreSQL: {e}")
 
