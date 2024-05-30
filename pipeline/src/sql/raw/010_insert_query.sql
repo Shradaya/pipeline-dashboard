@@ -76,7 +76,7 @@ VALUES (
     %s,
     %s
 )
-ON CONFLICT ON CONSTRAINT raw_api_data_pk 
+ON CONFLICT ON CONSTRAINT raw_api_data_uk 
 DO UPDATE 
 SET status = EXCLUDED.status,
 updated_at = EXCLUDED.updated_at;

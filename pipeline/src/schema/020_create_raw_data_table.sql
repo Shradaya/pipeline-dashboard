@@ -36,5 +36,5 @@ CREATE TABLE IF NOT EXISTS raw.raw_data (
     created_at VARCHAR(255),
     updated_at VARCHAR(255),
     is_converted VARCHAR(255),
-    CONSTRAINT raw_api_data_pk PRIMARY KEY (id)
+    CONSTRAINT raw_api_data_uk UNIQUE (id)
 );
