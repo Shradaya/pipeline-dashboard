@@ -7,6 +7,11 @@ from ..constants import (LEAVE_COUNT_PER_WEEKDAY_ENDPOINT,
                             LEAVE_HIGHEST_COUNT_ENDPOINT,
                             LEAVE_BALANCE_ENDPOINT)
 
+def create_params(**kwargs):
+    return {
+        key: value for key, value in kwargs.items() if value is not None
+    }
+
 def register_leave_callbacks(app):
     @app.callback(
         Output("leave_count_by_weekday", "children"),
@@ -19,13 +24,13 @@ def register_leave_callbacks(app):
         ]
     )
     def leaves_per_weekday_chart(selected_project, leave_type, department, start_date, end_date):
-        params = {
-            'selected_project': selected_project,
-            'leave_type': leave_type,
-            'department': department,
-            'start_date': start_date,
-            'end_date': end_date
-        }
+        params = create_params(
+            selected_project=selected_project,
+            leave_type=leave_type,
+            department=department,
+            start_date=start_date,
+            end_date=end_date
+        )
         leaves_per_week_day = fetch_data(LEAVE_COUNT_PER_WEEKDAY_ENDPOINT, params)
 
         day_of_week = leaves_per_week_day.get('day_of_week')
@@ -70,13 +75,13 @@ def register_leave_callbacks(app):
         ]
     )
     def leave_metrics_chart(selected_project, leave_type, department, start_date, end_date):
-        params = {
-            'selected_project': selected_project,
-            'leave_type': leave_type,
-            'department': department,
-            'start_date': start_date,
-            'end_date': end_date
-        }
+        params = create_params(
+            selected_project=selected_project,
+            leave_type=leave_type,
+            department=department,
+            start_date=start_date,
+            end_date=end_date
+        )
         leave_applied_approved = fetch_data(LATE_APPLIED_APPROVED_ENDPOINT, params)
 
         if leave_applied_approved:
@@ -121,13 +126,13 @@ def register_leave_callbacks(app):
         ]
     )
     def highest_leave_count_chart(selected_project, leave_type, department, start_date, end_date):
-        params = {
-            'selected_project': selected_project,
-            'leave_type': leave_type,
-            'department': department,
-            'start_date': start_date,
-            'end_date': end_date
-        }
+        params = create_params(
+            selected_project=selected_project,
+            leave_type=leave_type,
+            department=department,
+            start_date=start_date,
+            end_date=end_date
+        )
         leave_count = fetch_data(LEAVE_HIGHEST_COUNT_ENDPOINT, params)
         color_combo = {
             "Leave Without Pay": "#FF0000",  # Red
@@ -191,12 +196,12 @@ def register_leave_callbacks(app):
         ]
     )
     def leave_balance_table(selected_project, leave_type, department, fiscal_year):
-        params = {
-            'selected_project': selected_project,
-            'leave_type': leave_type,
-            'department': department,
-            'fiscal_year': fiscal_year
-        }
+        params = create_params(
+            selected_project= selected_project,
+            leave_type= leave_type,
+            department= department,
+            fiscal_year = fiscal_year
+        )
         leave_balance = fetch_data(LEAVE_BALANCE_ENDPOINT, params)
 
         table_header = [

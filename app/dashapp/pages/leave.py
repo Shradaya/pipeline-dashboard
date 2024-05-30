@@ -94,7 +94,7 @@ def get_chart_row():
                        id='fiscal_year_dropdown',
                        options=fiscal_year_options,
                        placeholder="Choose Fiscal Year",
-                       value=fiscal_year_options[0]['value'],
+                       value=fiscal_year_options[0].get('value') if fiscal_year_options else None,
                        style={'width': '100%', 'marginBottom': '10px'}
                    ),
                    html.Div(id="leave_balance_table")  # Dedicated Div for the table
