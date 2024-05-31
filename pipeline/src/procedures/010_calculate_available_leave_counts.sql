@@ -32,8 +32,7 @@ BEGIN
 		JOIN final.dim_leave_types dlt ON
 			fl.leave_type_id = dlt.id
 		WHERE
-			fl.status <> 'CANCELLED'
-			and fl.status <> 'REJECTED'
+			fl.status not in  ('CANCELLED', 'REJECTED')
 		GROUP BY
 			fl.employee_id,
 			dd.fiscal_id,
@@ -72,7 +71,7 @@ BEGIN
                     prev_remaining_leave_count := prev_available_leave_count - rec.leaves_taken;
                 END IF;
             ELSE
-                SELECT available_leave_count, remaining_leave_count
+                SELECT available_leave_count, CASE WHEN remaining_leave_count <= 0 THEN 0 ELSE remaining_leave_count END
                 INTO prev_available_leave_count, prev_remaining_leave_count
                 FROM final.calculated_leave_counts
                 WHERE employee_id = rec.employee_id
