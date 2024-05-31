@@ -12,8 +12,9 @@ FROM
     JOIN final.dim_date_leaves ddl ON ddl.leave_id = fl.leave_id_sk
     JOIN final.dim_date dd ON dd.date_id = ddl.date_id
     {% if selected_project %}
-        JOIN final.dim_allocation_leaves dal ON dal.leave_id = fl.leave_id_sk
+        JOIN (SELECT leave_id FROM final.dim_allocation_leaves 
         JOIN final.dim_allocations da ON da.id = dal.allocation_id
+        WHERE da.name = {{ selected_project }}) dal ON dal.leave_id = fl.leave_id_sk
     {% endif %}
     {% if leave_type %}
         JOIN final.dim_leave_types dlt ON dlt.id = fl.leave_type_id
@@ -21,10 +22,7 @@ FROM
     {% if department %}
         JOIN final.dim_departments dd2 ON dd2.id = fl.department_id
     {% endif %}
-WHERE 1 = 1
-{% if selected_project %}
-    and da.name = {{ selected_project }}
-{% endif %}
+WHERE fl.status not in ['CANCELLED', 'REJECTED']
 {% if leave_type %}
     and dlt.leave_type_name = {{ leave_type }}
 {% endif %}

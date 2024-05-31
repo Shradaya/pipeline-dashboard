@@ -7,7 +7,7 @@ from
     (
         select
             leave_id_sk,
-            generate_series(start_date, end_date + 1, '1 day') :: date AS date_value
+            generate_series(start_date, end_date, '1 day') :: date AS date_value
         from
             final.fact_leaves
     ) fl

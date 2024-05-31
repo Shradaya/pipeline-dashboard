@@ -1,8 +1,8 @@
 PROJECT_OPTIONS = """
         SELECT 
             distinct 
-            name as label, 
-            name as value
+            allocation_name as label, 
+            allocation_name as value
         FROM final.dim_allocations;
     """
 

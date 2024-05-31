@@ -26,13 +26,13 @@ LEAVE_BALANCE_QUERY = """
     {% if selected_project %}
         JOIN (SELECT leave_id FROM final.dim_allocation_leaves dal
             JOIN final.dim_allocations da ON da.id = dal.allocation_id 
-            WHERE da.name = {{ selected_project }}) dal
+            WHERE da.allocation_name = {{ selected_project }}) dal
         ON dal.leave_id = fl.leave_id_sk
     {% endif %}
     {% if department %}
         JOIN final.dim_departments dd2 ON dd2.id = fl.department_id
     {% endif %}
-    WHERE 1 = 1
+    WHERE fl.status not in ('CANCELLED', 'REJECTED')
         {% if fiscal_year %}
             AND df.id = {{ fiscal_year }}
         {% endif %}

@@ -65,7 +65,7 @@ SELECT fiscal_id,
         day_of_week,
         week_of_year,
         CASE
-            WHEN day_of_week = 1
+            WHEN day_of_week = 6
             OR day_of_week = 7 THEN true
             ELSE false
         END AS holiday
